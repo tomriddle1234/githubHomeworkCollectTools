@@ -25,6 +25,8 @@ def loadcsv(filename):
         csvreader = csv.reader(csvfile, delimiter='|')      
         for row in csvreader:
             table.append(row)
+        #remove first row
+        del table[0]
 
 def writeResultCSV(hwName,data):
     with open(hwName+'.csv','w') as csvfile:
@@ -81,14 +83,14 @@ def cloneRepos(hwName,data):
     #check if there's hwName folder,if there's not, create one
     hwfolder = os.path.join(hwRF,hwName)
     if not os.path.isdir(hwfolder):
-        os.mkdir(hwfolder)
+        os.makedirs(hwfolder)
     
     repolist = []
     #clone url one by one, check if success, store all repo obj in a list
     for row in data:
         username = row[1] 
         #compose git url for each username in a list
-        giturl = 'https://github.com/'+username+'/'+hwName+'.git'
+        giturl = 'git://github.com/'+username+'/'+hwName+'.git'
         targeturl = os.path.join(hwfolder,username+'-'+hwName)
         
         #remove dir if exists, otherwise causing problem with GitPython
@@ -103,14 +105,18 @@ def cloneRepos(hwName,data):
                 continue 
     
         try:
+            print "Cloning %s ... to %s " % (giturl,targeturl)
             repo = git.Repo.clone_from(giturl, targeturl, branch='master')
-        except git.exc.InvalidGitRepositoryError:
-            #git url not reachable
-            print "Given GitHub url is not reachable, %s" % giturl 
+            print ">>> Success! <<<"
         except git.exc.NoSuchPathError:
-            print "Local path %s does not exist." % targeturl
-        except git.exc.GitCommandError:
-            print "Git command execution proble."
+            print ">>> Local path %s does not exist. <<<" % targeturl
+        except git.exc.GitCommandError,e:
+            out = str(e)
+            print "Error Message:"
+            print "%s" % out
+            if "Repository not found." in out:
+                print ">>> Remote git repo url not found. <<<"
+            
         
         #check if repo created successfully
         if (os.path.isdir(targeturl)):
@@ -126,7 +132,7 @@ def cloneRepos(hwName,data):
             result[data[i][0]] = [data[i][1],True]
         else:
             result[data[i][0]] = [data[i][0],False]
-        i++
+        i += 1
 
     return result
 
@@ -138,10 +144,12 @@ def cloneRepos(hwName,data):
 if __name__ == "__main__":
 
     targetHWname = 'homeworkone'     
-    loadcsv('prepared.csv')
+    loadcsv('githubList.csv')
     
     #two colmn 
     namelist = getNameList() 
+    
+    print namelist
 
     cloneResult = cloneRepos(targetHWname,namelist)
 
