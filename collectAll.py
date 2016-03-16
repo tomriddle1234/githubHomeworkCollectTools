@@ -31,7 +31,7 @@ def loadcsv(filename):
 def writeResultCSV(hwName,data):
     with open(hwName+'.csv','w') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter='|')
-        csvwriter.writerow(['Name','DownloadStatus'])
+        csvwriter.writerow(['Name','Username','DownloadStatus'])
         for key,value in data.items():
             #value is list, key is the real name.
             csvwriter.writerow([key] + value)
@@ -128,10 +128,10 @@ def cloneRepos(hwName,data):
     i = 0
     for r in repolist:
         if r != '':
-            #data[i] is one row, data[i][0] is the real name
+            #data[i] is one row, data[i][0] is the real name, data[i][1] is the username
             result[data[i][0]] = [data[i][1],True]
         else:
-            result[data[i][0]] = [data[i][0],False]
+            result[data[i][0]] = [data[i][1],False]
         i += 1
 
     return result
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     #two colmn 
     namelist = getNameList() 
     
-    print namelist
+    #print namelist
 
     cloneResult = cloneRepos(targetHWname,namelist)
 
