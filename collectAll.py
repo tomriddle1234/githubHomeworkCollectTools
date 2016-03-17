@@ -16,6 +16,15 @@ namelist =[]
 table = []
 lectureTable = []
 
+validTable = []
+
+def loadValidCSV(filename):
+    with open(filename,'r') as csvfile:
+    csvreader = csv.reader(csvfile, delimiter='|')      
+    for row in csvreader:
+        validTable.append(row)
+    #remove first row
+    del validTable[0]
 
 def loadcsv(filename):
     """
@@ -71,6 +80,33 @@ def getNameList():
         
     return result 
 
+def pullRepos(hwName, validData):
+    hwfolder = os.path.join(hwRF,hwName)
+    if not os.path.isdir(hwfolder):
+        print "No root homefolder %s exists. Stop pulling process." % hwfolder
+        return
+    for row in validData:
+        if row[2] == True:
+            username = row[1]
+            targeturl = os.path.join(hwfolder,username+'-'+hwName)
+            if  not (os.path.isdir(targeturl)):
+                print "No repo folder %s exists. Skip this one's pulling process." % targeturl
+                continue
+            try:
+                print "Pulling %s ..." % targeturl
+                g = git.cmd.Git(targeturl)
+                g.pull()
+                print "Pull end."
+        except git.exc.NoSuchPathError:
+            print ">>> Local path %s does not exist. <<<" % targeturl
+        except git.exc.GitCommandError,e:
+            out = str(e)
+            print "Error Message:"
+            print "%s" % out
+            if "Repository not found." in out:
+                print ">>> Remote git repo url not found. <<<"
+            
+    
 
 def cloneRepos(hwName,data):
     """
