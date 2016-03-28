@@ -20,11 +20,11 @@ validTable = []
 
 def loadValidCSV(filename):
     with open(filename,'r') as csvfile:
-    csvreader = csv.reader(csvfile, delimiter='|')      
-    for row in csvreader:
-        validTable.append(row)
-    #remove first row
-    del validTable[0]
+        csvreader = csv.reader(csvfile, delimiter='|')      
+        for row in csvreader:
+            validTable.append(row)
+        #remove first row
+        del validTable[0]
 
 def loadcsv(filename):
     """
@@ -97,14 +97,14 @@ def pullRepos(hwName, validData):
                 g = git.cmd.Git(targeturl)
                 g.pull()
                 print "Pull end."
-        except git.exc.NoSuchPathError:
-            print ">>> Local path %s does not exist. <<<" % targeturl
-        except git.exc.GitCommandError,e:
-            out = str(e)
-            print "Error Message:"
-            print "%s" % out
-            if "Repository not found." in out:
-                print ">>> Remote git repo url not found. <<<"
+            except git.exc.NoSuchPathError:
+                print ">>> Local path %s does not exist. <<<" % targeturl
+            except git.exc.GitCommandError,e:
+                out = str(e)
+                print "Error Message:"
+                print "%s" % out
+                if "Repository not found." in out:
+                    print ">>> Remote git repo url not found. <<<"
             
     
 
@@ -131,13 +131,31 @@ def cloneRepos(hwName,data):
         
         #remove dir if exists, otherwise causing problem with GitPython
         if (os.path.isdir(targeturl)):
+            from time import sleep
+            
+            confirminput = ""
             print "Warning, path already exists on %s remove it or skip?(y/n)" % targeturl
-            if (raw_input() == 'y'):
+            print "Please provide input in 20 seconds! (Hit Ctrl-C to start)"
+            try:
+                for i in range(0,20):
+                    sleep(1) # could use a backward counter to be preeety :)
+                print('No input is given.')
+            except KeyboardInterrupt:
+                confirminput = raw_input('y/n:')
+            
+            if (confirminput == 'y'):
                 print "Removing..."
                 shutil.rmtree(targeturl)
                 print "Removed"
             else:
-                print "Skip."
+                try:
+                    print "Folder exists, first try pulling %s ..." % targeturl
+                    g = git.cmd.Git(targeturl)
+                    g.pull()
+                    print "Pull end."
+                except e:
+                    print "Pulling Error: %s" % str(e)
+                    print "Skip."
                 continue 
     
         try:
